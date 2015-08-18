@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LibNoise">
-      <HintPath>LibNoise.NET\bin\Release\LibNoise.dll</HintPath>
+      <HintPath>..\..\..\Libraries\LibNoise.NET\bin\Debug\LibNoise.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK">
       <HintPath>..\Engine\References\OpenTK.dll</HintPath>
@@ -59,16 +59,13 @@
     <Compile Include="Window.cs" />
     <None Include="Planet.frag" />
     <None Include="Planet.vert" />
-    <None Include="UnityPlanet\GravityManager.cs" />
     <Compile Include="Surface\LayerIntegrator.cs" />
     <Compile Include="Surface\MeshGeneratorThread.cs" />
-    <None Include="UnityPlanet\Planet.cs" />
     <Compile Include="Surface\PatchMesh.cs" />
     <Compile Include="Surface\Planet.cs" />
     <Compile Include="Surface\PlanetLayer.cs" />
     <Compile Include="Surface\PlanetSurfaceIntegrator.cs" />
     <Compile Include="Surface\SubdivisionMesh.cs" />
-    <None Include="UnityPlanet\UnityLayerIntegrator.cs" />
     <Compile Include="VectorAddons.cs" />
   </ItemGroup>
   <ItemGroup>

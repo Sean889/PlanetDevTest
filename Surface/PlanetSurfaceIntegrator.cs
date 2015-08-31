@@ -29,7 +29,7 @@ using System.Collections.Generic;
 
 namespace PlanetDevTest.Surface
 {
-    public class PlanetSurfaceIntegrator : LayerIntegrator
+    public class GenericIntegrator : LayerIntegrator
     {
         private ConcurrentQueue<Patch> Create = new ConcurrentQueue<Patch>();
         private ConcurrentQueue<Patch> Add = new ConcurrentQueue<Patch>();
@@ -123,7 +123,7 @@ namespace PlanetDevTest.Surface
             }
         }
 
-        public PlanetSurfaceIntegrator(GLShader Shader, Planet Planet)
+        public GenericIntegrator(GLShader Shader, Planet Planet)
         {
             this.Planet = Planet;
             PlanetShader = Shader;
@@ -134,4 +134,13 @@ namespace PlanetDevTest.Surface
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(Patch.NumIndices * sizeof(int)), Patch.Indices, BufferUsageHint.StaticDraw);
         }
     }
+
+	public class PlanetSurfaceIntegrator : GenericIntegrator
+	{
+		public PlanetSurfaceIntegrator(GLShader Shader, Planet Planet) :
+			base(Shader, Planet)
+		{
+
+		}
+	}
 }

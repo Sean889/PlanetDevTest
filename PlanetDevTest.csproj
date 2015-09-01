@@ -31,6 +31,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LibNoise">
@@ -39,8 +40,9 @@
     <Reference Include="OpenTK">
       <HintPath>..\Engine\References\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="ShaderRuntime">
-      <HintPath>..\Engine\ShaderRuntime\bin\Release\ShaderRuntime.dll</HintPath>
+    <Reference Include="ShaderRuntime, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ShaderRuntime\ShaderRuntime\bin\Release\ShaderRuntime.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,25 +57,23 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shader.cs" />
-    <Compile Include="Surface\Patch.cs" />
     <Compile Include="Window.cs" />
     <None Include="Planet.frag" />
     <None Include="Planet.vert" />
-    <Compile Include="Surface\LayerIntegrator.cs" />
-    <Compile Include="Surface\MeshGeneratorThread.cs" />
-    <Compile Include="Surface\PatchMesh.cs" />
-    <Compile Include="Surface\Planet.cs" />
-    <Compile Include="Surface\PlanetLayer.cs" />
-    <Compile Include="Surface\PlanetSurfaceIntegrator.cs" />
-    <Compile Include="Surface\SubdivisionMesh.cs" />
     <Compile Include="VectorAddons.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PlanetLib\PlanetLib.csproj">
+      <Project>{e58e62cf-a9f9-4784-b7cb-3155bff221af}</Project>
+      <Name>PlanetLib</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>D:\Projects\Projects\C#\Engine\Utils\ShaderGenerator\bin\Release\ShaderGenerator.exe $(ProjectDir)\Shader.cs $(ProjectDir)Planet.vert $(ProjectDir)Planet.frag</PreBuildEvent>
+    <PreBuildEvent>D:\Projects\Projects\C#\ShaderRuntime\ShaderCompiler\bin\Release\ShaderCompiler.exe /out="$(ProjectDir)\Shader.cs" /vert="$(ProjectDir)Planet.vert" /frag="$(ProjectDir)Planet.frag" /name=PlanetShader /r</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

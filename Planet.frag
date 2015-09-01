@@ -7,5 +7,5 @@ out vec3 colour;
 
 void main()
 {
-	colour = vec3(vs_Displacement, 0.0, 0.0);
+	colour = vec3(0.5, 0.0, vs_Displacement);
 }

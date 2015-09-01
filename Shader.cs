@@ -30,7 +30,7 @@ namespace Shaders
 		public static int __Displacement;
 		public static int __Vertex;
 		private static string VertexSource = "#version 430\n\n#pragma name PlanetShader\n\nlayout(location = 0) uniform mat4 MVP;\n\nlayout(location = 0) in vec3 Vertex;\nlayout(location = 1) in vec3 Normal;\nlayout(location = 2) in float Displacement;\n\nsmooth out vec3 vs_Normal;\nsmooth out float vs_Displacement;\n\nvoid main()\n{\n	gl_Position = MVP * vec4(Vertex, 1.0);\n	\n	vs_Normal = Normal;\n	vs_Displacement = Displacement / 128.0;\n}";
-		private static string FragmentSource = "#version 430\n\nin vec3 vs_Normal;\nin float vs_Displacement;\n\nout vec3 colour;\n\nvoid main()\n{\n	colour = vec3(vs_Displacement, 0.0, 1.0);\n}";
+		private static string FragmentSource = "#version 430\n\nin vec3 vs_Normal;\nin float vs_Displacement;\n\nout vec3 colour;\n\nvoid main()\n{\n	colour = vec3(0.5, 0.0, vs_Displacement);\n}";
 		private static void LoadShaders()
 		{
 			VertexSource = global::System.IO.File.ReadAllText(@"D:\Projects\Projects\C#\PlanetDevTest\Planet.vert");

@@ -29,22 +29,31 @@ using System;
 namespace PlanetDevTest
 {
 	using Surface = PlanetLib.Surface;
+	using N = LibNoise;
 
     class Window : GameWindow
     {
-        Surface.Planet Planet = new Surface.Planet();
-        Surface.GenericIntegrator Integrator;
+        Surface.PlanetMesh Planet = new Surface.PlanetMesh();
+        Surface.NewIntegrator Integrator;
         ShaderRuntime.GLShader Shader = new Shaders.PlanetShader();
-        static IModule Noise = new RidgedMultifractal();
+        static IModule Noise;
+		private bool IsLine = false;
+		private PlanetLib.Frustum Frustum = new PlanetLib.Frustum();
+
+		private const double NearZ = 10;
+		private const double FarZ = 100000000;
+		private const double MaxD = 4096;
 
         private static double DispDel(Vector3d p)
         {
-            Vector3d v = p.Normalized();
-            double val = (Noise.GetValue(v.X, v.Y, v.Z) + 1.0) * 64;
+            Vector3d v = p * 0.00001;
+            double val = (Noise.GetValue(v.X, v.Y, v.Z)) * MaxD;
             return val;
         }
 
-        Vector3d CamPos = new Vector3d(0, 0, 10);
+		static readonly Vector3d DefaultPos = new Vector3d(0, 0, 6000000);
+
+        Vector3d CamPos = DefaultPos;
         Quaterniond CamRot = Quaterniond.Identity;
 
         public Window()
@@ -53,7 +62,10 @@ namespace PlanetDevTest
             DisplayDevice.Default, 3, 2,
             GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
+			RidgedMultifractal Fractal = new RidgedMultifractal();
+			Fractal.OctaveCount = 15;
 
+			Noise = Fractal;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -61,32 +73,39 @@ namespace PlanetDevTest
             base.OnLoad(e);
 
             Shader.Compile();
-            Integrator = new Surface.GenericIntegrator(Shader, Planet);
-            Planet.MainLayer = new Surface.PlanetLayer(Integrator, 1000, 100, DispDel);
+            Integrator = new Surface.NewIntegrator(Shader, Planet);
+            Planet.AddLayer(new Surface.SubdivisionMesh(6000000, 100, Integrator, DispDel));
+			Planet.Layers[0].SkirtDepth = 10000;
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.FrontFace(FrontFaceDirection.Ccw);
             GL.ClearColor(System.Drawing.Color.MidnightBlue);
+
+			Shader.SetParameter("MaxDisplacement", (float)MaxD);
+
+			Frustum.SetCamInternals(60, (double)Width / (double)Height, NearZ, System.Math.Min(FarZ, Planet.Layers[0].Radius * 0.5));
         }
 
+		protected override void OnResize(EventArgs e)
+		{
+			Frustum.SetCamInternals(60, (double)Width / (double)Height, NearZ, FarZ);
+		}
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Integrator.Update();
-            Integrator.Draw((Matrix4d.CreateFromQuaternion(CamRot) * Matrix4d.CreateTranslation(CamPos)).Inverted() * Matrix4d.CreatePerspectiveFieldOfView(1, (double)Width / (double)Height, 1, 10000.0));
+            Integrator.Draw((Matrix4d.CreateFromQuaternion(CamRot) * Matrix4d.CreateTranslation(CamPos)).Inverted() * Matrix4d.CreatePerspectiveFieldOfView(1, (double)Width / (double)Height, NearZ, FarZ), Frustum);
 
             SwapBuffers();
         }
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            double displacement = 5;
+            double displacement = 50;
 
             base.OnUpdateFrame(e);
-
-            Planet.MainLayer.Update(CamPos);
+            Planet.Update(CamPos);
 
 			if (Focused)
 			{
@@ -97,6 +116,9 @@ namespace PlanetDevTest
 				Vector3d left = rot.Row0.Xyz;
 				Vector3d up = rot.Row1.Xyz;
 				Vector3d front = rot.Row2.Xyz; ;
+
+				if (Keyboard[OpenTK.Input.Key.ShiftLeft])
+					displacement *= 1000;
 
 				if (Keyboard[OpenTK.Input.Key.W])
 					CamPos -= front * displacement;
@@ -128,7 +150,7 @@ namespace PlanetDevTest
 
 				if (Keyboard[OpenTK.Input.Key.Space])
 				{
-					CamPos = Vector3d.Zero;
+					CamPos = DefaultPos;
 					CamRot = Quaterniond.Identity;
 				}
 
@@ -136,6 +158,32 @@ namespace PlanetDevTest
 				{
 					Shader.Recompile();
 				}
+
+				if(Keyboard[OpenTK.Input.Key.X])
+				{
+					if (IsLine)
+					{
+						GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+						IsLine = false;
+					}
+					else
+					{
+						GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+						IsLine = true;
+					}
+				}
+
+				if(Keyboard[OpenTK.Input.Key.Z])
+				{
+					Planet.Layers[0].RegeneratePlanet();
+				}
+
+				if(Keyboard[OpenTK.Input.Key.Escape])
+				{
+					Exit();
+				}
+
+				Frustum.SetCamDef(CamPos, CamPos + front, up);
 
 				CamRot *= Quaterniond.FromMatrix(Matrix3d.CreateRotationX(NewCamRot.X) * Matrix3d.CreateRotationY(NewCamRot.Y) * Matrix3d.CreateRotationZ(NewCamRot.Z));
 			}
@@ -145,7 +193,7 @@ namespace PlanetDevTest
         protected override void OnClosed(EventArgs e)
         {
             base.Exit();
-            Planet.MainLayer.Dispose();
+            Planet.Dispose();
         }
     }
 }

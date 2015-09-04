@@ -27,10 +27,12 @@ namespace Shaders
 		public bool TransposeMatrix = false;
 		public static int __MVP;
 		public global::OpenTK.Matrix4 uniform_MVP;
+		public static int __MaxDisplacement;
+		public float uniform_MaxDisplacement;
 		public static int __Displacement;
 		public static int __Vertex;
-		private static string VertexSource = "#version 430\n\n#pragma name PlanetShader\n\nlayout(location = 0) uniform mat4 MVP;\n\nlayout(location = 0) in vec3 Vertex;\nlayout(location = 1) in vec3 Normal;\nlayout(location = 2) in float Displacement;\n\nsmooth out vec3 vs_Normal;\nsmooth out float vs_Displacement;\n\nvoid main()\n{\n	gl_Position = MVP * vec4(Vertex, 1.0);\n	\n	vs_Normal = Normal;\n	vs_Displacement = Displacement / 128.0;\n}";
-		private static string FragmentSource = "#version 430\n\nin vec3 vs_Normal;\nin float vs_Displacement;\n\nout vec3 colour;\n\nvoid main()\n{\n	colour = vec3(0.5, 0.0, vs_Displacement);\n}";
+		private static string VertexSource = "#version 430\n\n#pragma name PlanetShader\n\nlayout(location = 0) uniform mat4 MVP;\nuniform float MaxDisplacement;\n\nlayout(location = 0) in vec3 Vertex;\nlayout(location = 1) in vec3 Normal;\nlayout(location = 2) in float Displacement;\n\nsmooth out vec3 vs_Normal;\nsmooth out float vs_Displacement;\n\nvoid main()\n{\n	gl_Position = MVP * vec4(Vertex, 1.0);\n	\n	vs_Normal = Normal;\n	vs_Displacement = Displacement / MaxDisplacement;\n}";
+		private static string FragmentSource = "#version 430\n\nin vec3 vs_Normal;\nin float vs_Displacement;\n\nout vec3 colour;\n\nvoid main()\n{\n	colour = vec3(0.5, 0.0, abs(vs_Displacement));\n}";
 		private static void LoadShaders()
 		{
 			VertexSource = global::System.IO.File.ReadAllText(@"D:\Projects\Projects\C#\PlanetDevTest\Planet.vert");
@@ -55,6 +57,7 @@ namespace Shaders
 			GL.DetachShader(ProgramID, Fragment);
 			GL.DeleteShader(Fragment);
 			__MVP = GL.GetUniformLocation(ProgramID, "MVP");
+			__MaxDisplacement = GL.GetUniformLocation(ProgramID, "MaxDisplacement");
 			__Displacement = GL.GetAttribLocation(ProgramID, "Displacement");
 			__Vertex = GL.GetAttribLocation(ProgramID, "Vertex");
 		}
@@ -79,6 +82,9 @@ namespace Shaders
 					case "MVP":
 						uniform_MVP = (global::OpenTK.Matrix4)(object)value;
 						break;
+					case "MaxDisplacement":
+						uniform_MaxDisplacement = (float)(object)value;
+						break;
 					default:
 						throw new global::ShaderRuntime.InvalidIdentifierException("There is no uniform variable named " + name + " in this shader.");
 				}
@@ -96,6 +102,8 @@ namespace Shaders
 				{
 					case "MVP":
 						return (T)(object)uniform_MVP;
+					case "MaxDisplacement":
+						return (T)(object)uniform_MaxDisplacement;
 					default:
 						throw new global::ShaderRuntime.InvalidIdentifierException("There is no uniform variable named " + name + " in this shader.");
 				}
@@ -111,6 +119,8 @@ namespace Shaders
 			{
 				case "MVP":
 					return __MVP;
+				case "MaxDisplacement":
+					return __MaxDisplacement;
 				case "Displacement":
 					return __Displacement;
 				case "Vertex":
@@ -122,6 +132,7 @@ namespace Shaders
 		public void PassUniforms()
 		{
 			GL.UniformMatrix4(__MVP, TransposeMatrix, ref uniform_MVP);
+			GL.Uniform1(__MaxDisplacement, uniform_MaxDisplacement);
 		}
 		public void UseShader()
 		{
@@ -149,6 +160,7 @@ namespace Shaders
 		public global::System.Collections.Generic.IEnumerable<string> GetUniformNames()
 		{
 			yield return "MVP";
+			yield return "MaxDisplacement";
 		}
 	}
 }

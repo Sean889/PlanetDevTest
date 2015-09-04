@@ -66,7 +66,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PlanetLib\PlanetLib.csproj">
+    <ProjectReference Include="..\PlanetLib2\PlanetLib.csproj">
       <Project>{e58e62cf-a9f9-4784-b7cb-3155bff221af}</Project>
       <Name>PlanetLib</Name>
     </ProjectReference>

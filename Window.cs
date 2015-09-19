@@ -36,22 +36,22 @@ namespace PlanetDevTest
         Surface.PlanetMesh Planet = new Surface.PlanetMesh();
         Surface.NewIntegrator Integrator;
         ShaderRuntime.GLShader Shader = new Shaders.PlanetShader();
-        static IModule Noise;
 		private bool IsLine = false;
 		private PlanetLib.Frustum Frustum = new PlanetLib.Frustum();
+		static INoiseModule Noise;
 
 		private const double NearZ = 10;
 		private const double FarZ = 100000000;
-		private const double MaxD = 4096;
+		private const double MaxD = 160000;
 
         private static double DispDel(Vector3d p)
         {
-            Vector3d v = p * 0.00001;
-            double val = (Noise.GetValue(v.X, v.Y, v.Z)) * MaxD;
-            return val;
+            Vector3d v = p * 0.000005;
+            return (Noise.GetValue(v.X, v.Y, v.Z)) * MaxD;
+            //return 0;
         }
 
-		static readonly Vector3d DefaultPos = new Vector3d(0, 0, 6000000);
+		static readonly Vector3d DefaultPos = new Vector3d(0, 0, 6001000);
 
         Vector3d CamPos = DefaultPos;
         Quaterniond CamRot = Quaterniond.Identity;
@@ -62,10 +62,7 @@ namespace PlanetDevTest
             DisplayDevice.Default, 3, 2,
             GraphicsContextFlags.ForwardCompatible | GraphicsContextFlags.Debug)
         {
-			RidgedMultifractal Fractal = new RidgedMultifractal();
-			Fractal.OctaveCount = 15;
-
-			Noise = Fractal;
+			Noise = NoiseModules.MountainModule;
         }
 
         protected override void OnLoad(EventArgs e)
@@ -82,6 +79,7 @@ namespace PlanetDevTest
             GL.ClearColor(System.Drawing.Color.MidnightBlue);
 
 			Shader.SetParameter("MaxDisplacement", (float)MaxD);
+			Shader.SetParameter("LightDir", -Vector3.UnitX);
 
 			Frustum.SetCamInternals(60, (double)Width / (double)Height, NearZ, System.Math.Min(FarZ, Planet.Layers[0].Radius * 0.5));
         }
@@ -102,7 +100,7 @@ namespace PlanetDevTest
         }
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            double displacement = 50;
+            double displacement = 500;
 
             base.OnUpdateFrame(e);
             Planet.Update(CamPos);
@@ -118,7 +116,7 @@ namespace PlanetDevTest
 				Vector3d front = rot.Row2.Xyz; ;
 
 				if (Keyboard[OpenTK.Input.Key.ShiftLeft])
-					displacement *= 1000;
+					displacement *= 100;
 
 				if (Keyboard[OpenTK.Input.Key.W])
 					CamPos -= front * displacement;
@@ -175,6 +173,7 @@ namespace PlanetDevTest
 
 				if(Keyboard[OpenTK.Input.Key.Z])
 				{
+					Integrator.Reset();
 					Planet.Layers[0].RegeneratePlanet();
 				}
 
